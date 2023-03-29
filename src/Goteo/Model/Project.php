@@ -2317,7 +2317,8 @@ class Project extends Model {
                 project_conf.noinvest as noinvest,
                 project_conf.one_round as one_round,
                 project_conf.days_round1 as days_round1,
-                project_conf.days_round2 as days_round2
+                project_conf.days_round2 as days_round2,
+                project_conf.type as type
             FROM  project
             INNER JOIN user
                 ON user.id = project.owner
@@ -3274,6 +3275,11 @@ class Project extends Model {
         if(!empty($filters['gender'])) {
             $sqlFilter .= " AND user.gender = :gender";
             $values[':gender'] = $filters['gender'];
+        }
+
+        if (!empty($filters['type_of_campaign'])) {
+            $sqlFilter .= " AND project_conf.type = :type_of_campaign";
+            $values[":type_of_campaign"] = $filters['type_of_campaign'];
         }
 
         // order
