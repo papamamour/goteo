@@ -2317,7 +2317,8 @@ class Project extends Model {
                 project_conf.noinvest as noinvest,
                 project_conf.one_round as one_round,
                 project_conf.days_round1 as days_round1,
-                project_conf.days_round2 as days_round2
+                project_conf.days_round2 as days_round2,
+                project_conf.type as type
             FROM  project
             INNER JOIN user
                 ON user.id = project.owner
@@ -3276,6 +3277,11 @@ class Project extends Model {
             $values[':gender'] = $filters['gender'];
         }
 
+        if (!empty($filters['type_of_campaign'])) {
+            $sqlFilter .= " AND project_conf.type = :type_of_campaign";
+            $values[":type_of_campaign"] = $filters['type_of_campaign'];
+        }
+
         // order
         if (in_array($filters['order'], ['updated', 'name'])) {
             $sqlOrder = " ORDER BY project.{$filters['order']} DESC";
@@ -3808,4 +3814,26 @@ class Project extends Model {
         ];
     }
 
+    public function getConfig(): ProjectConf
+    {
+        return ProjectConf::get($this->id);
+    }
+
+    public function isPermanent(): bool
+    {
+        if ($this->type)
+            return ProjectConf::TYPE_PERMANENT == $this->type;
+
+        $conf = ProjectConf::get($this->id);
+        return $conf->isTypePermanent();
+    }
+
+    public function isCampaign(): bool
+    {
+        if ($this->type)
+            return ProjectConf::TYPE_CAMPAIGN == $this->type;
+
+        $conf = ProjectConf::get($this->id);
+        return $conf->isTypeCampaign();
+    }
 }
