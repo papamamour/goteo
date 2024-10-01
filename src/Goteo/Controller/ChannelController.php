@@ -13,7 +13,9 @@ namespace Goteo\Controller;
 use Goteo\Core\Controller;
 use Goteo\Library\Forms\FormModelException;
 use Goteo\Library\Forms\Model\QuestionnaireForm;
+use Goteo\Model\Blog\Post;
 use Goteo\Model\Footprint;
+use Goteo\Model\Node\NodePost;
 use Goteo\Model\Node\NodeSections;
 use Goteo\Model\Sdg;
 use Goteo\Repository\DataSetRepository;
@@ -80,12 +82,11 @@ class ChannelController extends Controller {
 
         $config = $channel->getConfig();
 
-        if($config['google_analytics']) {
-                Config::set('analytics.google', array_merge(Config::get('analytics.google'), [$config['google_analytics']]));
-            }
+        if($config['google_analytics'])
+            Config::set('analytics.google', array_merge(Config::get('analytics.google'), [$config['google_analytics']]));
 
         // get custom colors from config field
-        $colors=$config['colors'] ? $config['colors'] : [];
+        $colors=$config['colors'] ?: [];
 
         //check if there are elements to show by type
         foreach($types as $key => $type)
@@ -189,6 +190,9 @@ class ChannelController extends Controller {
 
         $view= $channel->type=='normal' ? 'channel/list_projects' : 'channel/'.$channel->type.'/list_projects';
 
+        $dataSetsRepository = new DataSetRepository();
+        $dataSets = $dataSetsRepository->getListByChannel([$id]);
+
         return $this->viewResponse(
             $view,
             [
@@ -197,7 +201,8 @@ class ChannelController extends Controller {
                 'title_text' => $title_text,
                 'type' => $type,
                 'total' => $total,
-                'limit' => $limit
+                'limit' => $limit,
+                'dataSets' => $dataSets
             ]
         );
     }
@@ -205,22 +210,35 @@ class ChannelController extends Controller {
     /**
      * Channel terms
      */
-    public function faqAction($id, $slug)
+    public function faqAction(string $id): Response
+    {
+        $channel = Node::get($id);
+        $this->setChannelContext($id);
+        $nodeFaqs = NodeFaq::getList(['node' => $channel->id]);
+
+        return $this->viewResponse('channel/call/faq/index', [
+            'nodeFaqs' => $nodeFaqs,
+        ]);
+    }
+
+    public function faqSlugAction(string $id, string $slug): Response
     {
         $this->setChannelContext($id);
         $faq = NodeFaq::getBySlug($id, $slug);
-        $questions = NodeFaqQuestion::getList(['node_faq' => $faq->id]);
-        $downloads = NodeFaqDownload::getList(['node_faq' => $faq->id]);
+        $questionsCount = NodeFaqQuestion::getList(['node_faq' => $faq->id], 0, 0, true);
+        $questions = NodeFaqQuestion::getList(['node_faq' => $faq->id], 0, $questionsCount);
+        $downloadsCount = NodeFaqDownload::getList(['node_faq' => $faq->id], 0, 0, true);
+        $downloads = NodeFaqDownload::getList(['node_faq' => $faq->id], 0, $downloadsCount);
 
-        return $this->viewResponse('channel/call/faq',
-            ['faq' => $faq,
-             'questions' => $questions,
-             'downloads' => $downloads
-            ]
-        );
+        return $this->viewResponse('channel/call/faq', [
+            'faq' => $faq,
+            'questions' => $questions,
+            'downloads' => $downloads
+        ]);
     }
 
-     /**
+
+    /**
      * Channel resources page
       */
     public function resourcesAction($id, $slug='')
@@ -524,7 +542,10 @@ class ChannelController extends Controller {
             'items' => []
         ];
         foreach($projects as $p) {
-            $vars['items'][] = View::render('project/widgets/normal', ['project' => $p]);
+            if ($p->isPermanent())
+                $vars['items'][] = View::render('project/widgets/normal_permanent', ['project' => $p]);
+            else
+                $vars['items'][] = View::render('project/widgets/normal', ['project' => $p]);
         }
         return $this->jsonResponse($vars);
     }
@@ -551,6 +572,36 @@ class ChannelController extends Controller {
             'footprint_impact_data' => $footprintImpactData,
             'values' => current($values)
         ], 'channel/');
+
+    }
+
+    public function blogPostAction(Request $request, string $id, string $slug): Response
+    {
+        try {
+            $channel = Node::get($id);
+        } catch (ModelNotFoundException $e) {
+            Message::error($e->getMessage());
+            return $this->redirect('/');
+        }
+
+        $post = Post::get($slug);
+
+        if (!$post instanceof Post) {
+            return $this->redirect('/channel/' . $id);
+        }
+
+        $channelPost = NodePost::getNodePost($channel->id, $post->id);
+        if (!$channelPost) {
+            $this->redirect('/channel/' . $id);
+        }
+
+        $relatedPosts = Post::getList(['node' => $id, 'excluded' => $post->id], 0, 3);
+
+        return $this->viewResponse('/channel/call/blog/post',[
+            'post' => $post,
+            'channel' => $channel,
+            'related_posts' => $relatedPosts
+        ]);
 
     }
 

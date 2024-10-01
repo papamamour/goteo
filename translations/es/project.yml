@@ -23,6 +23,7 @@ project-help-license: 'Necesito ayuda para definir los retornos colectivos y las
 project-hide-donors: 'Ocultar cofinanciadores'
 project-hide-needs: 'Ocultar listado de necesidades'
 project-invest: Aportación
+project-invest-from-subscription: Suscripción
 project-invest-msg: 'Mensaje de apoyo:'
 project-langs-header: 'Proyecto en'
 project-media-play_video: 'Ver video'
@@ -45,6 +46,7 @@ project-messages-send_message-button: Enviar
 project-messages-send_message-header: 'Escribe tu mensaje'
 project-not_published: 'Este proyecto aun no es público'
 project-regular-support: Cofinanciar
+project-recurring-support: 'Suscríbete'
 project-related: 'Proyectos relacionados'
 project-rewards-bonus_reward-title: Bonus
 project-rewards-header: Retorno
@@ -134,8 +136,11 @@ project-edit: Editar proyecto
 project-remove-cost-confirm: '¿Seguro que quieres eliminar este coste?'
 project-add-cost: 'Añadir coste'
 project-add-reward: 'Añadir recompensa'
+project-add-subscription: 'Añadir subscripción'
 project-remove-reward-confirm: '¿Seguro que quieres eliminar esta recompensa?'
 project-reward-unlimited: 'Ilimitadas'
+project-reward-subscribable: 'Suscribible'
+project-reward-stripe-based-subscriptions: 'Las subscripciones sólo se pueden activar si Stripe está habilitado'
 project-send-review: 'Enviar a revisión'
 project-reviewing: 'Estamos valorando y revisando tu proyecto'
 project-validation-ok: 'Has completado el formulario. ¡Genial! Puedes clicar al siguiente botón para que nuestros asesores revisen tu proyecto.'
@@ -156,6 +161,7 @@ project-non-public-field: 'Este campo no es público'
 project-campaign: 'Configuración'
 project-campaign-configuration: 'Configuración de campaña'
 project-campaign-use-paypal: 'Quiero permitir que los usuarios puedan pagar con Paypal'
+project-campaign-use-stripe: 'Quiero permitir que los usuarios puedan pagar con Stripe'
 project-manage: 'Gestionar'
 project-manage-campaign: 'Gestionar campaña'
 project-widget-not-visible: 'Este widget no será visible hasta que el proyecto sea público'
@@ -181,3 +187,6 @@ project-impact-calculator-card-impact-description: "Con un presupuesto de %s asp
 project-create-continue-impact: "Guardar y calcular impacto"
 project-campaign-impact-calculator: "Calculadora de Impacto"
 project-campaign-activate-impact-calculator: "Al activar la calculadora de impacto, la impulsora del proyecto podrá acceder al modulo de los Datos de Impacto del Proyecto, así como también se verá su impacto en la página principal del proyecto."
+project-campaign-type-label: "Escoge tipo de campaña"
+project-campaign-type-campaign: "Campaña"
+project-campaign-type-permanent: "Permanente"

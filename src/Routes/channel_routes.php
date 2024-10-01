@@ -41,9 +41,15 @@ $channel->add('channel-discover-projects-filter', new Route(
 ));
 
 $channel->add('channel-faq', new Route(
-    '/{id}/faq/{slug}',
+    '/{id}/faq',
     ['_controller' => 'Goteo\Controller\ChannelController::faqAction']
 ));
+
+$channel->add('channel-faq-slug', new Route(
+    '/{id}/faq/{slug}',
+    ['_controller' => 'Goteo\Controller\ChannelController::faqSlugAction']
+));
+
 
 $channel->add('channel-resources', new Route(
     '/{id}/resources',
@@ -63,6 +69,11 @@ $channel->add('channel-project-apply', new Route(
 $channel->add('channel-impact-discover', new Route(
     '/{id}/impact-discover/{view}',
     array('_controller' => 'Goteo\Controller\ChannelController::impactDiscoverAction')
+));
+
+$channel->add('channel-blog-post', new Route(
+    '/{id}/blog/{slug}',
+    ['_controller' => 'Goteo\Controller\ChannelController::blogPostAction']
 ));
 
 $channel->add('channel-list-projects', new Route(

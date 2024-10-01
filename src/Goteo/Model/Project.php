@@ -25,6 +25,7 @@ use Goteo\Model\Location\LocationInterface;
 use Goteo\Model\Project\Account;
 use Goteo\Model\Project\Conf as ProjectConf;
 use Goteo\Model\Project\ProjectLocation;
+use Goteo\Model\Project\Reward;
 use PDOException;
 use function array_empty;
 
@@ -739,7 +740,7 @@ class Project extends Model {
     // retornos colectivos
     public function getSocialRewards($lang = null) {
         if(!$this->social_rewards) {
-            $this->social_rewards = Project\Reward::getAll($this->id, 'social', $lang);
+            $this->social_rewards = Project\Reward::getAll($this->id, Reward::TYPE_SOCIAL, $lang);
         }
         return $this->social_rewards;
     }
@@ -747,9 +748,19 @@ class Project extends Model {
     public function getIndividualRewards($lang = null) {
         if(!$this->individual_rewards) {
             // retornos individuales
-            $this->individual_rewards = Project\Reward::getAll($this->id, 'individual', $lang);
+            $this->individual_rewards = Project\Reward::getAll($this->id, Reward::TYPE_INDIVIDUAL, $lang);
         }
         return $this->individual_rewards;
+    }
+
+    public function getSubscribableRewards(): array
+    {
+        return Reward::getSubscribableRewardsForProject($this);
+    }
+
+    public function getRewardsOrderBySubscribable(): array
+    {
+        return Reward::getRewardsOrderBySubscribableForProject($this);
     }
 
     public function getSupports($lang = null) {
@@ -894,6 +905,16 @@ class Project extends Model {
             $this->imageInstance = new Image($this->image);
         }
         return $this->imageInstance;
+    }
+
+    /**
+     * Convert the alfanumeric string ID into a numeric string ID
+     * @param int $surface Collission chance = 10**$surface
+     * @return string number-only string ID
+     */
+    public function getNumericId(int $surface = 10): string
+    {
+        return substr(base_convert(hash('sha256', $this->id), 16, 10), 0, $surface);
     }
 
     /**
@@ -1748,7 +1769,7 @@ class Project extends Model {
             $this->minmax();
 
             //retornos colectivos
-            $tiene = Project\Reward::getAll($this->id, 'social');
+            $tiene = Project\Reward::getAll($this->id, Reward::TYPE_SOCIAL);
             $viene = $this->social_rewards;
             $quita = array_diff_key($tiene, $viene);
             $guarda = array_diff_key($viene, $tiene);
@@ -1773,10 +1794,10 @@ class Project extends Model {
             }
 
             if (!empty($quita) || !empty($guarda))
-                $this->social_rewards = Project\Reward::getAll($this->id, 'social');
+                $this->social_rewards = Project\Reward::getAll($this->id, Reward::TYPE_SOCIAL);
 
             //recompenssas individuales
-            $tiene = Project\Reward::getAll($this->id, 'individual');
+            $tiene = Project\Reward::getAll($this->id, Reward::TYPE_INDIVIDUAL);
             $viene = $this->individual_rewards;
             $quita = array_diff_key($tiene, $viene);
             $guarda = array_diff_key($viene, $tiene);
@@ -1802,7 +1823,7 @@ class Project extends Model {
             }
 
             if (!empty($quita) || !empty($guarda))
-                $this->individual_rewards = Project\Reward::getAll($this->id, 'individual');
+                $this->individual_rewards = Project\Reward::getAll($this->id, Reward::TYPE_INDIVIDUAL);
 
             // colaboraciones
             $tiene = Project\Support::getAll($this->id);
@@ -2317,7 +2338,8 @@ class Project extends Model {
                 project_conf.noinvest as noinvest,
                 project_conf.one_round as one_round,
                 project_conf.days_round1 as days_round1,
-                project_conf.days_round2 as days_round2
+                project_conf.days_round2 as days_round2,
+                project_conf.type as type
             FROM  project
             INNER JOIN user
                 ON user.id = project.owner
@@ -3250,6 +3272,14 @@ class Project extends Model {
                     $order = 'ORDER BY project.published DESC';
                 }
             }
+            elseif($filters['type'] == 'permanent') {
+                $sqlFilter .= ' AND project_conf.type = :type';
+                $values[':type'] = ProjectConf::TYPE_PERMANENT;
+
+                if(empty($filters['order'])) {
+                    $order = 'ORDER BY project.published DESC';
+                }
+            }
         }
         if (!empty($filters['node'])) {
             // Check main node in project table and in relation table
@@ -3274,6 +3304,11 @@ class Project extends Model {
         if(!empty($filters['gender'])) {
             $sqlFilter .= " AND user.gender = :gender";
             $values[':gender'] = $filters['gender'];
+        }
+
+        if (!empty($filters['type_of_campaign'])) {
+            $sqlFilter .= " AND project_conf.type = :type_of_campaign";
+            $values[":type_of_campaign"] = $filters['type_of_campaign'];
         }
 
         // order
@@ -3808,4 +3843,26 @@ class Project extends Model {
         ];
     }
 
+    public function getConfig(): ProjectConf
+    {
+        return ProjectConf::get($this->id);
+    }
+
+    public function isPermanent(): bool
+    {
+        if ($this->type)
+            return ProjectConf::TYPE_PERMANENT == $this->type;
+
+        $conf = ProjectConf::get($this->id);
+        return $conf->isTypePermanent();
+    }
+
+    public function isCampaign(): bool
+    {
+        if ($this->type)
+            return ProjectConf::TYPE_CAMPAIGN == $this->type;
+
+        $conf = ProjectConf::get($this->id);
+        return $conf->isTypeCampaign();
+    }
 }

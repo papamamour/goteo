@@ -1,5 +1,6 @@
 ---
 role-name-user: 'Usuario sin privilegios'
+role-name-creator: 'Creador de contenidos'
 role-name-vip: 'Usuario VIP (padrino)'
 role-name-translator: 'Traductor de contenidos'
 role-name-checker: 'Revisor de proyectos'
@@ -13,6 +14,7 @@ role-name-superadmin: 'Super Administrador'
 role-name-owner: 'Impulsor'
 role-name-root: 'Root'
 role-name-matcher: 'Matcher'
+role-name-helper: 'Ayudante'
 
 role-perm-name-create-project: 'Puede crear proyectos'
 role-perm-name-edit-project: 'Puede editar sus proyectos'
@@ -65,3 +67,5 @@ role-perm-name-edit-matcher: 'Puede editar matchers'
 role-perm-name-remove-matcher: 'Puede borrar sus matchers'
 role-perm-name-edit-any-matcher: 'Puede editar cualquier matcher'
 role-perm-name-remove-any-matcher: 'Puede borrar cualquier matcher'
+
+role-perm-name-highlight-project: 'Puede destacar proyectos propios en su perfil de creador'

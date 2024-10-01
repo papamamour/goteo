@@ -134,7 +134,9 @@ $langs = $project->getLangs();
                     </div>
                 </div>
 
-                <?= $this->insert('project/partials/responsive_meter.php', ['project' => $project ]) ?>
+                <?php if ($project->type = 'campaign'): ?>
+                    <?= $this->insert('project/partials/responsive_meter.php', ['project' => $project ]) ?>
+                <?php endif; ?>
 
                 <div id="project-tabs-menu" class="row spacer project-menu hidden-xs">
                     <a href="/project/<?= $project->id ?>" class="pronto" data-pronto-target="#project-tabs" data-pronto-scroll-to="#project-tabs-menu">
@@ -269,20 +271,9 @@ $langs = $project->getLangs();
             </div>
         <?php endif; ?>
 
-        <?php if ($project->node !== $this->get_config('current_node')&&($project->nodeData->active)) : ?>
-            <div class="row">
-                <div class="hidden-sm hidden-xs channel spacer-bottom-20 <?= ($project->called || $matchers || $project->sign_url) ? 'spacer-20' : '' ?>">
-                    <span class="channel-label">
-                        <img src="/assets/img/project/channel.svg" width="20" alt=""> <?= $this->text('regular-channel') ?>
-                    </span>
-                    <a href="<?= $project->nodeData->url ?>"
-                       class="btn"
-                       style="<?= $project->nodeData->owner_background ? 'background-color: '.$project->nodeData->owner_background :  '' ?>"
-                       title="<?= $project->nodeData->name ?>"
-                    >
-                        <?= $project->nodeData->name ?>
-                    </a>
-                </div>
+        <?php if (!empty($this->channels) || isset($project->node)):?>
+            <div class="hidden-sm hidden-xs channel spacer-bottom-20 <?= ($project->called || $matchers || $project->sign_url) ? 'spacer-20' : '' ?>">
+                <?= $this->insert('project/partials/channel_slider.php', ['channels' => $this->channels]) ?>
             </div>
         <?php endif; ?>
     </div>
@@ -297,9 +288,9 @@ $langs = $project->getLangs();
                     </div>
                 </a>
                 <div id="collapseRewards" class="panel-collapse collapse">
-                   <div class="panel-body">
+                   <ul class="panel-body list-unstyled">
                         <?php foreach ($this->individual_rewards as $individual) : ?>
-                            <div class="side-widget">
+                            <li class="side-widget">
                                 <h3 class="amount"><?= $this->text('regular-investing').' '.amount_format($individual->amount); ?></h3>
                                 <div class="text-bold spacer-20"><?= $individual->reward ?></div>
                                 <div class="spacer-20"><?= $this->markdown($individual->description) ?></div>
@@ -318,9 +309,9 @@ $langs = $project->getLangs();
                                         </div>
                                     </div>
                                 <?php endif; ?>
-                            </div>
+                            </li>
                         <?php endforeach ?>
-                    </div>
+                    </ul>
                    <!-- End panel body -->
                 </div>
             </div>

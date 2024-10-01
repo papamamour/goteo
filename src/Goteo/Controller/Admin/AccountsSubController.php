@@ -67,6 +67,7 @@ class AccountsSubController extends AbstractSubController {
       'procStatus' => 'all',
       'amount' => '',
       'maxamount' => '',
+      'contract' => ''
     );
 
     /**
@@ -76,6 +77,8 @@ class AccountsSubController extends AbstractSubController {
     static public function isAllowed(User $user, $node): bool {
         // Only central node allowed here
         if( ! Config::isMasterNode($node) ) return false;
+        if ($user->hasPerm('admin-module-account')) return true;
+
         return parent::isAllowed($user, $node);
     }
 

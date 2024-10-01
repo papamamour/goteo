@@ -49,6 +49,7 @@ use Goteo\Model\Project\Reward;
 use Goteo\Model\Project\Support;
 use Goteo\Model\Stories;
 use Goteo\Model\User;
+use Goteo\Payment\Method\StripeSubscriptionPaymentMethod;
 use Goteo\Util\Form\Type\SubmitType;
 use Goteo\Util\Form\Type\TextareaType;
 use Goteo\Util\Form\Type\TextType;
@@ -531,7 +532,7 @@ class ProjectDashboardController extends DashboardController {
                 }
                 $button = $form->getClickedButton()->getName();
                 if($button === 'add-reward') {
-                    $reward = new Reward(['project' => $project->id, 'type' => 'individual']);
+                    $reward = new Reward(['project' => $project->id, 'type' => Reward::TYPE_INDIVIDUAL]);
                     $errors = [];
                     if(!$reward->save($errors)) {
                         return $this->rawResponse(Text::get('form-sent-error', implode(', ',$errors)), 'text/plain', 403);
@@ -900,10 +901,16 @@ class ProjectDashboardController extends DashboardController {
         foreach($project->getIndividualRewards() as $reward) {
             $filters['reward'][$reward->id] = $reward->getTitle();
         }
+        
         if($project->getCall()) {
             $filters['others']['drop'] = Text::Get('dashboard-project-filter-by-drop');
             $filters['others']['nondrop'] = Text::Get('dashboard-project-filter-by-nondrop');
         }
+        
+        if ($project->isPermanent()) {
+            $filters['others']['from_subscription'] = Text::get('dashboard-project-filter-by-subscription');
+        }
+
         $status = [
             Invest::STATUS_CHARGED,
             Invest::STATUS_PAID,
@@ -919,6 +926,12 @@ class ProjectDashboardController extends DashboardController {
         }
         if(array_key_exists($filter['others'], $filters['others'])) {
             $filter_by['types'] = $filter['others'];
+
+            if($filter['others']['from_subscription']) {
+                $filter_by['methods'] = [
+                    StripeSubscriptionPaymentMethod::PAYMENT_METHOD_ID
+                ];
+            }
         }
         if($filter['query']) {
             $filter_by['name'] = $filter['query'];
@@ -1010,7 +1023,7 @@ class ProjectDashboardController extends DashboardController {
         if($project instanceOf Response) return $project;
 
         $licenses_list = Reward::licenses();
-        $icons   = Reward::icons('social');
+        $icons   = Reward::icons(Reward::TYPE_SOCIAL);
 
         return $this->viewResponse('dashboard/project/shared_materials', [
             'licenses_list' => $licenses_list,
